@@ -89,8 +89,11 @@ interface SearchResponseFull {
 
 interface SearchResponse {
   count: number;
-  next: string | null;
-  previous: string | null;
+  current_page: number;
+  total_pages: number;
+  page_size: number;
+  has_next: boolean;
+  has_previous: boolean;
   results: SearchResult[];
 }
 
@@ -146,21 +149,32 @@ export async function getBookToc(bookId: number): Promise<TocEntry[]> {
 
 export async function searchBooks(
   query: string,
-  bookIds?: string
+  bookIds?: string,
+  page: number = 1
 ): Promise<SearchResponse> {
   const params = new URLSearchParams({ q: query, highlight: "false" });
   if (bookIds) {
     params.append("book_ids", bookIds);
+  }
+  if (page > 1) {
+    params.append("page", page.toString());
   }
 
   const fullResponse = await fetchApi<SearchResponseFull>(
     `/search/?${params.toString()}`
   );
 
+  // Calculate pagination metadata
+  const pageSize = fullResponse.results.length || 10; // Estimate from current results
+  const totalPages = Math.ceil(fullResponse.count / pageSize);
+
   return {
     count: fullResponse.count,
-    next: fullResponse.next,
-    previous: fullResponse.previous,
+    current_page: page,
+    total_pages: totalPages,
+    page_size: pageSize,
+    has_next: fullResponse.next !== null,
+    has_previous: fullResponse.previous !== null,
     results: fullResponse.results.map((result) => ({
       book_id: result.book_id,
       book_title: result.book_title,
