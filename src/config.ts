@@ -46,14 +46,29 @@ function loadEnvFile(): Record<string, string> {
 }
 
 /**
- * Get Agentset configuration from .env file
+ * Load the .env file, returning an empty record if it is absent.
+ * In containerized deployments secrets are injected via process.env,
+ * so a missing .env file is not an error.
+ */
+function loadEnvFileSafe(): Record<string, string> {
+  try {
+    return loadEnvFile();
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Get Agentset configuration.
+ * Prefers process.env (container/runtime injection) and falls back to a
+ * bundled .env file for local stdio usage.
  */
 export function getAgentsetConfig(): AgentsetConfig {
-  const env = loadEnvFile();
+  const fileEnv = loadEnvFileSafe();
 
-  const apiKey = env.AGENTSET_API_KEY;
-  const namespaceId = env.AGENTSET_NAMESPACE_ID;
-  const tenantId = env.AGENTSET_TENANT_ID;
+  const apiKey = process.env.AGENTSET_API_KEY ?? fileEnv.AGENTSET_API_KEY;
+  const namespaceId = process.env.AGENTSET_NAMESPACE_ID ?? fileEnv.AGENTSET_NAMESPACE_ID;
+  const tenantId = process.env.AGENTSET_TENANT_ID ?? fileEnv.AGENTSET_TENANT_ID;
 
   if (!apiKey || apiKey === "your_api_key_here") {
     throw new Error(

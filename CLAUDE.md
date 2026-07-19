@@ -67,13 +67,12 @@ The MCP server follows a clean, four-layered architecture:
 
 ## Key Files and Their Roles
 
-### `/Users/achal/Code/md-mcp/src/index.ts` - MCP Server Entry Point
-**Role:** Core MCP server implementation with tool registration
+### `/Users/achal/Code/md-mcp/src/server.ts` - Core MCP Server & Tool Registration
+**Role:** `createServer()` factory shared by both transports
 
 **Key Responsibilities:**
 - Creates McpServer instance (name: "madhyasth-darshan", version: "1.0.0")
-- Registers 5 MCP tools with Zod schema validation
-- Implements stdio transport for Claude integration
+- Registers 6 MCP tools with Zod schema validation
 - Handles errors gracefully with try-catch patterns
 - Returns structured responses with `content` array and optional `isError` flag
 
@@ -81,11 +80,24 @@ The MCP server follows a clean, four-layered architecture:
 1. `list_books` - No parameters, returns all available books
 2. `get_book_page` - Parameters: book_id (required), page_no (optional, defaults to 1)
 3. `get_book_toc` - Parameter: book_id (required)
-4. `search_books` - Parameters: query (required), book_ids (optional, comma-separated)
+4. `lexical_search_books` - Parameters: query (required), book_ids (optional, comma-separated), page (optional, defaults to 1)
 5. `lookup_paribhasha` - Parameter: word (required, supports Hindi and Hinglish)
 6. `semantic_search` - Parameters: query (required), topK (optional, 1-100, default 10), rerank (optional, boolean, default true)
 
 **Pattern:** Each tool wraps an async function call in try-catch, returning standardized response objects
+
+### `/Users/achal/Code/md-mcp/src/index.ts` - Stdio Entry Point
+**Role:** Local/Claude Desktop entry point — connects the shared server to StdioServerTransport
+
+### `/Users/achal/Code/md-mcp/src/http.ts` - Streamable HTTP Entry Point
+**Role:** Remote entry point for the hosted connector (`https://md-mcp.achal.xyz/mcp`)
+
+**Key Responsibilities:**
+- Node http server on port 3000 (`MCP_HTTP_PORT` env var overrides)
+- Stateless StreamableHTTPServerTransport — a fresh server+transport per request
+- `/mcp` endpoint for MCP traffic, `/health` for health checks
+- Permissive CORS + OPTIONS preflight for browser-based MCP clients
+- Deployed via Docker (see `Dockerfile`) behind an HTTPS proxy (Coolify)
 
 ### `/Users/achal/Code/md-mcp/src/api.ts` - External API Integration
 **Role:** Client for the JV Adhyaan REST API with response transformation
