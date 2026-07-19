@@ -20,6 +20,11 @@ RUN touch .env && pnpm run build
 # --- Runtime image ---
 FROM node:24-slim AS runtime
 
+# curl is needed for container health checks (e.g. Coolify's HTTP healthcheck)
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends curl \
+  && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 ENV NODE_ENV=production
 ENV MCP_HTTP_PORT=3000
