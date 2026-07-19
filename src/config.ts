@@ -58,6 +58,17 @@ function loadEnvFileSafe(): Record<string, string> {
   }
 }
 
+const DEFAULT_API_BASE_URL = "https://db.madhyasth.org/api/v1";
+
+/**
+ * Base URL of the Madhyasth Darshan REST API.
+ * Overridable via API_BASE_URL (process.env or bundled .env).
+ */
+export function getApiBaseUrl(): string {
+  const fileEnv = loadEnvFileSafe();
+  return process.env.API_BASE_URL ?? fileEnv.API_BASE_URL ?? DEFAULT_API_BASE_URL;
+}
+
 /**
  * Get Agentset configuration.
  * Prefers process.env (container/runtime injection) and falls back to a

@@ -1,4 +1,6 @@
-const API_BASE_URL = "https://db.madhyasth.org/api/v1";
+import { getApiBaseUrl } from "./config.js";
+
+const API_BASE_URL = getApiBaseUrl();
 
 interface BookFull {
   id: number;
