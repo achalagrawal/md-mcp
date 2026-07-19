@@ -40,15 +40,16 @@ Only `semantic_search` needs Agentset credentials (`AGENTSET_API_KEY`, `AGENTSET
 
 ### Remote (Streamable HTTP) — Docker
 
-The repo includes a `Dockerfile` that runs the server in Streamable HTTP mode on port 3000 (`/mcp` endpoint, `/health` for health checks):
+A prebuilt multi-arch image (amd64/arm64) is published to GitHub Container Registry by CI on every push to `main`:
 
 ```bash
-docker build -t md-mcp .
 docker run -p 3000:3000 \
   -e AGENTSET_API_KEY=... \
   -e AGENTSET_NAMESPACE_ID=... \
-  md-mcp
+  ghcr.io/achalagrawal/md-mcp:latest
 ```
+
+The server runs in Streamable HTTP mode on port 3000 (`/mcp` endpoint, `/health` for health checks). To build locally instead, use the included `Dockerfile`: `docker build -t md-mcp .`
 
 Credentials are injected at runtime via environment variables — no secrets are baked into the image. Deploy behind any HTTPS reverse proxy (Coolify, Caddy, Traefik, etc.); Claude custom connectors require HTTPS.
 
